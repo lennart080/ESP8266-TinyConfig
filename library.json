@@ -1,0 +1,26 @@
+{
+  "name": "TinyConfig",
+  "version": "1.0.0",
+  "description": "Configuration library for ESP8266.",
+  "keywords": "config, esp8266",
+  "authors": [
+    {
+      "name": "Lennart Gutjahr",
+      "email": "gutjahrlennart@gmail.com"
+    }
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lennart080/ESP8266-TinyConfig.git"
+  },
+  "frameworks": "arduino",
+  "platforms": "espressif8266",
+  "dependencies": [
+    "ArduinoJson@^6.21.3",
+    "earlephilhower/LittleFS@^2.11.0"
+  ],
+  "examples": [
+    
+  ]
+}
