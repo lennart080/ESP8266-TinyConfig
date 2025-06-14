@@ -19,7 +19,8 @@ enum class TinyConfigError {
     FileReadFailed,
     FileCerateFailed,
     JsonParseFailed,
-    FileTooLarge
+    FileSizeToSmall,
+    FileSizeTooLarge,
 };
 
 class TinyConfig {
