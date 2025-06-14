@@ -15,6 +15,7 @@ Easily store and retrieve configuration data (such as WiFi credentials, settings
 - **Automatic file creation/reset:** Handles missing or corrupt config files.
 - **Configurable file size:** Prevents oversized config files.
 - **Detailed error handling:** Get error codes and human-readable error messages.
+- **Key deletion:** Remove individual keys from the configuration.
 
 ---
 
@@ -97,7 +98,15 @@ Serial.print("Boot count: ");
 Serial.println(bootCount);
 ```
 
-#### 6. Reset Configuration (Optional)
+#### 6. Delete a Key from the Configuration
+
+Remove a specific key and its value from the configuration:
+
+```cpp
+config.deleteKey("wifi_pass");
+```
+
+#### 7. Reset Configuration (Optional)
 
 To reset the configuration file to an empty JSON object:
 
@@ -105,7 +114,7 @@ To reset the configuration file to an empty JSON object:
 config.resetConfig();
 ```
 
-#### 7. Unmount the Filesystem
+#### 8. Unmount the Filesystem
 
 When finished, unmount the filesystem:
 
@@ -125,6 +134,7 @@ config.StopTC();
 | `int getInt(const String& key, int fallback)`      | Get an integer value or fallback.                |
 | `float getFloat(const String& key, float fallback)`| Get a float value or fallback.                   |
 | `String getString(const String& key, String fallback)` | Get a string value or fallback.              |
+| `bool deleteKey(const String& key)`                | Delete a key and its value from the config.      |
 | `bool resetConfig()`                               | Resets config to empty JSON.                     |
 | `void setMaxFileSize(size_t maxSize)`              | Set max config file size in bytes.               |
 | `TinyConfigError getLastError() const`             | Get the last error code.                         |

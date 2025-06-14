@@ -26,7 +26,7 @@ bool TinyConfig::StartTC() {
     }
     if (!LittleFS.exists(FileString)) {
         if (!resetConfig()) {
-            lastError = TinyConfigError::FileCerateFailed;
+            lastError = TinyConfigError::FileCreateFailed;
             return false;
         }
     }
@@ -64,7 +64,7 @@ bool TinyConfig::StopTC() {
 bool TinyConfig::resetConfig() {
     File file = LittleFS.open(FileString, "w");
     if (!file) {
-        lastError = TinyConfigError::FileCerateFailed;
+        lastError = TinyConfigError::FileCreateFailed;
         return false;
     }
     file.print("{}");
@@ -101,7 +101,7 @@ String TinyConfig::getLastErrorString() const {
  */
 bool TinyConfig::setMaxFileSize(size_t maxSize) {
     if (maxSize < 9) {
-        lastError = TinyConfigError::FileSizeToSmall;
+        lastError = TinyConfigError::FileSizeTooSmall;
         return false;
     }
     if (maxSize > 4096) {
