@@ -41,7 +41,7 @@ void test_max_file_size() {
     String big = "";
     for (int i = 0; i < 100; ++i) big += 'A';
     TEST_ASSERT_FALSE(tc.set("big", big));
-    TEST_ASSERT_EQUAL(TinyConfigError::FileTooLarge, tc.getLastError());
+    TEST_ASSERT_EQUAL(TinyConfigError::FileSizeTooLarge, tc.getLastError());
 }
 
 void test_stop_and_error() {
@@ -51,6 +51,15 @@ void test_stop_and_error() {
     TEST_ASSERT_EQUAL(42, tc.getInt("after_stop", 42));
 }
 
+void test_deleteKey() {
+    tc.resetConfig();
+    TEST_ASSERT_TRUE(tc.set("delete_me", 99));
+    TEST_ASSERT_EQUAL(99, tc.getInt("delete_me", 0));
+    TEST_ASSERT_TRUE(tc.deleteKey("delete_me"));
+    TEST_ASSERT_EQUAL(0, tc.getInt("delete_me", 0));
+    TEST_ASSERT_FALSE(tc.deleteKey("non_existent"));
+}
+
 void setup() {
     delay(2000);
     UNITY_BEGIN();
@@ -58,6 +67,7 @@ void setup() {
     RUN_TEST(test_resetConfig);
     RUN_TEST(test_set_and_get);
     RUN_TEST(test_fallback);
+    RUN_TEST(test_deleteKey);
     RUN_TEST(test_max_file_size);
     RUN_TEST(test_stop_and_error);
     UNITY_END();
