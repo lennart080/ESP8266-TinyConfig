@@ -189,7 +189,7 @@ bool TinyConfig::setInternal(const String& key, T value) {
     doc[key] = value;
     size_t jsonSize = measureJson(doc);
     if (jsonSize > maxFileSize) {
-        lastError = TinyConfigError::FileTooLarge;
+        lastError = TinyConfigError::FileSizeTooLarge;
         return false;
     }
     if (!saveDoc(doc)) {

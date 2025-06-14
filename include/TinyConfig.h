@@ -10,16 +10,13 @@
 enum class TinyConfigError {
     None,
     FSInitFailed,
-    Unknown,
-    FileNotFound,
     NotInitialized,
     AlreadyInitialized,
     FileOpenFailed,
     FileWriteFailed,
-    FileReadFailed,
-    FileCerateFailed,
+    FileCreateFailed,    
     JsonParseFailed,
-    FileSizeToSmall,
+    FileSizeTooSmall,    
     FileSizeTooLarge,
 };
 
