@@ -311,7 +311,8 @@ bool TinyConfig::deleteKey(const String& key) {
     if (!loadDoc(doc)) {
         return false;
     }
-    if (!doc.remove(key)) {
+    if (doc.containsKey(key)) {
+        doc.remove(key);
         lastError = TinyConfigError::None;
         return true;
     }
