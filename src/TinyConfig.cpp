@@ -92,9 +92,25 @@ String TinyConfig::getLastErrorString() const {
 /**
  * @brief Sets the maximum allowed file size for the configuration file.
  * @param maxSize The maximum file size in bytes. If the config exceeds this size, set operations will fail.
+ * @return true if the size was set successfully, false otherwise. On failure, check getLastError() or getLastErrorString() for details.
+ * 
+ * This function sets the maximum file size for the configuration file.
+ * If the provided size is less than 9 bytes or greater than 4096 bytes, it sets the lastError to FileSizeToSmall or FileSizeTooLarge respectively.
+ * If the size is valid, it updates maxFileSize and sets lastError to None.
+ * Changing the maximum file size affects all subsequent set operations. It does not change the size of the existing file.
  */
-void TinyConfig::setMaxFileSize(size_t maxSize) {
+bool TinyConfig::setMaxFileSize(size_t maxSize) {
+    if (maxSize < 9) {
+        lastError = TinyConfigError::FileSizeToSmall;
+        return false;
+    }
+    if (maxSize > 4096) {
+        lastError = TinyConfigError::FileSizeTooLarge;
+        return false;
+    }
     maxFileSize = maxSize;
+    lastError = TinyConfigError::None;
+    return true;
 }
 
 /**
@@ -166,7 +182,7 @@ bool TinyConfig::setInternal(const String& key, T value) {
         lastError = TinyConfigError::NotInitialized;
         return false;
     }
-    DynamicJsonDocument doc(2048);
+    DynamicJsonDocument doc(maxFileSize);
     if (!loadDoc(doc)) {
         return false;
     }
@@ -226,7 +242,7 @@ int TinyConfig::getInt(const String& key, int fallback) {
         lastError = TinyConfigError::NotInitialized;
         return fallback;
     }
-    DynamicJsonDocument doc(2048);
+    DynamicJsonDocument doc(maxFileSize);
     if (!loadDoc(doc)) {
         return fallback;
     }
@@ -247,7 +263,7 @@ float TinyConfig::getFloat(const String& key, float fallback) {
         lastError = TinyConfigError::NotInitialized;
         return fallback;
     }
-    DynamicJsonDocument doc(2048);
+    DynamicJsonDocument doc(maxFileSize);
     if (!loadDoc(doc)) {
         return fallback;
     }
@@ -268,12 +284,42 @@ String TinyConfig::getString(const String& key, const String& fallback) {
         lastError = TinyConfigError::NotInitialized;
         return fallback;
     }
-    DynamicJsonDocument doc(2048);
+    DynamicJsonDocument doc(maxFileSize);
     if (!loadDoc(doc)) {
         return fallback;
     }
     lastError = TinyConfigError::None;
     return doc[key] | fallback;
+}
+
+/**
+ * @brief Deletes a key + data from the configuration.
+ * @param key The key to delete.
+ * @return true if the key was deleted successfully, false otherwise. On failure, check getLastError() or getLastErrorString() for details.
+ * 
+ * This funktion removes the specified key from the configuration file.
+ * If the filesystem is not initialized, it sets the lastError to NotInitialized.
+ * If the key does not exist, it sets lastError to None and returns true.
+ * If the file is successfully updated, it sets lastError to None.
+ */
+bool TinyConfig::deleteKey(const String& key) {
+    if (!isInitialized) {
+        lastError = TinyConfigError::NotInitialized;
+        return false;
+    }
+    DynamicJsonDocument doc(maxFileSize);
+    if (!loadDoc(doc)) {
+        return false;
+    }
+    if (!doc.remove(key)) {
+        lastError = TinyConfigError::None;
+        return true;
+    }
+    if (!saveDoc(doc)) {
+        return false;
+    }
+    lastError = TinyConfigError::None;
+    return true;
 }
 
 // Explicit template instantiations

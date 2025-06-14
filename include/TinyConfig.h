@@ -27,7 +27,7 @@ public:
     bool StartTC();
     bool StopTC();
     bool resetConfig();
-    void setMaxFileSize(size_t maxSize);
+    bool setMaxFileSize(size_t maxSize);
     
     TinyConfigError getLastError() const;
     String getLastErrorString() const;
@@ -40,12 +40,14 @@ public:
     float getFloat(const String& key, float fallback = 0.0f);
     String getString(const String& key, const String& fallback = "");
 
+    bool deleteKey(const String& key);
+
 private:
     TinyConfigError lastError = TinyConfigError::None;
     bool newFile();
     const char* FileString = "/config.json";
     bool isInitialized = false;
-    size_t maxFileSize = 1024;
+    size_t maxFileSize = 2048;
 
     bool loadDoc(ArduinoJson::DynamicJsonDocument& doc);
     bool saveDoc(const ArduinoJson::DynamicJsonDocument& doc);
