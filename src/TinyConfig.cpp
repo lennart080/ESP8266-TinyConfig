@@ -187,8 +187,9 @@ bool TinyConfig::setInternal(const String& key, T value) {
         return false;
     }
     doc[key] = value;
-    size_t jsonSize = measureJson(doc);
-    if (jsonSize > maxFileSize) {
+    String jsonString;
+    serializeJson(doc, jsonString);
+    if (jsonString.length() > maxFileSize) {
         lastError = TinyConfigError::FileSizeTooLarge;
         return false;
     }
@@ -347,7 +348,7 @@ String TinyConfig::getAll(const String& fallback) {
  * 
  * This funktion removes the specified key from the configuration file.
  * If the filesystem is not initialized, it sets the lastError to NotInitialized.
- * If the key does not exist, it sets lastError to None and returns true.
+ * If the key does not exist, it sets lastError to None and returns false.
  * If the file is successfully updated, it sets lastError to None.
  */
 bool TinyConfig::deleteKey(const String& key) {
@@ -357,6 +358,10 @@ bool TinyConfig::deleteKey(const String& key) {
     }
     DynamicJsonDocument doc(maxFileSize);
     if (!loadDoc(doc)) {
+        return false;
+    }
+    if (!doc.containsKey(key)) {
+        lastError = TinyConfigError::None;
         return false;
     }
     doc.remove(key);
