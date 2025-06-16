@@ -15,7 +15,6 @@ Easily store and retrieve configuration data (such as WiFi credentials, settings
 - **Automatic file creation/reset:** Handles missing or corrupt config files.
 - **Configurable file size:** Prevents oversized config files.
 - **Detailed error handling:** Get error codes and human-readable error messages.
-- **Key deletion:** Remove individual keys from the configuration.
 
 ---
 
@@ -75,7 +74,7 @@ void setup() {
 }
 ```
 
-#### 4. Set Configuration Values
+#### 3. Set Configuration Values
 
 Store values (such as WiFi credentials or settings):
 
@@ -85,7 +84,7 @@ config.set("wifi_pass", "MyPassword");
 config.set("boot_count", 1);
 ```
 
-#### 5. Retrieve Configuration Values
+#### 4. Retrieve Configuration Values
 
 Read values from the config file, providing a fallback if the key does not exist:
 
@@ -96,6 +95,24 @@ int bootCount = config.getInt("boot_count", 0);
 Serial.println("SSID: " + ssid);
 Serial.print("Boot count: ");
 Serial.println(bootCount);
+```
+
+#### 5. Retrieve All Configuration Data
+
+Get all configuration as a JSON string:
+
+```cpp
+String allConfig = config.getAll();
+Serial.println(allConfig); // Prints: {"wifi_ssid":"MySSID","wifi_pass":"MyPass",...}
+```
+
+Or as a `DynamicJsonDocument` for advanced manipulation:
+
+```cpp
+DynamicJsonDocument doc = config.getAllJson();
+if (doc.containsKey("wifi_ssid")) {
+    Serial.println(doc["wifi_ssid"].as<String>());
+}
 ```
 
 #### 6. Delete a Key from the Configuration
@@ -134,6 +151,8 @@ config.StopTC();
 | `int getInt(const String& key, int fallback)`      | Get an integer value or fallback.                |
 | `float getFloat(const String& key, float fallback)`| Get a float value or fallback.                   |
 | `String getString(const String& key, String fallback)` | Get a string value or fallback.              |
+| `String getAll(const String& fallback = "{}")`     | Get the entire config as a JSON string.          |
+| `DynamicJsonDocument getAllJson()`                 | Get the entire config as a DynamicJsonDocument.  |
 | `bool deleteKey(const String& key)`                | Delete a key and its value from the config.      |
 | `bool resetConfig()`                               | Resets config to empty JSON.                     |
 | `void setMaxFileSize(size_t maxSize)`              | Set max config file size in bytes.               |
