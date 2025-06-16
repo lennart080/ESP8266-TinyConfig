@@ -16,6 +16,7 @@ enum class TinyConfigError {
     FileWriteFailed,
     FileCreateFailed,    
     JsonParseFailed,
+    JsonSerializeFailed,
     FileSizeTooSmall,    
     FileSizeTooLarge,
 };
@@ -37,6 +38,9 @@ public:
     int getInt(const String& key, int fallback = 0);
     float getFloat(const String& key, float fallback = 0.0f);
     String getString(const String& key, const String& fallback = "");
+
+    String getAll(const String& fallback = "{}");
+    DynamicJsonDocument getAllJson();
 
     bool deleteKey(const String& key);
 

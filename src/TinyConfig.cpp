@@ -293,6 +293,54 @@ String TinyConfig::getString(const String& key, const String& fallback) {
 }
 
 /**
+ * @brief Gets all configuration data as a DynamicJsonDocument.
+ * @return A DynamicJsonDocument representing the entire configuration.
+ * 
+ * This function loads the entire configuration into a DynamicJsonDocument.
+ * If the filesystem is not initialized, it sets the lastError to NotInitialized.
+ * If the file cannot be loaded, it sets lastError accordingly.
+ */
+DynamicJsonDocument TinyConfig::getAllJson() {
+    DynamicJsonDocument doc(maxFileSize);
+    if (!isInitialized) {
+        lastError = TinyConfigError::NotInitialized;
+        return doc;
+    }
+    if (!loadDoc(doc)) {
+        return doc;
+    }
+    lastError = TinyConfigError::None;
+    return doc;
+}
+
+/**
+ * @brief Gets all configuration data as a JSON string.
+ * @param fallback The fallback value if the configuration is empty or an error occurs.
+ * @return A JSON string representing the entire configuration or the fallback value.
+ * 
+ * This function loads the entire configuration into a DynamicJsonDocument and serializes it to a string.
+ * If the filesystem is not initialized, it sets the lastError to NotInitialized.
+ * If the file cannot be loaded, it returns the fallback value and sets lastError accordingly.
+ */
+String TinyConfig::getAll(const String& fallback) {
+    if (!isInitialized) {
+        lastError = TinyConfigError::NotInitialized;
+        return fallback;
+    }
+    DynamicJsonDocument doc(maxFileSize);
+    if (!loadDoc(doc)) {
+        return fallback;
+    }
+    String jsonString;
+    if (serializeJson(doc, jsonString) == 0) {
+        lastError = TinyConfigError::JsonSerializeFailed;
+        return fallback;
+    }
+    lastError = TinyConfigError::None;
+    return jsonString;
+}
+
+/**
  * @brief Deletes a key + data from the configuration.
  * @param key The key to delete.
  * @return true if the key was deleted successfully, false otherwise. On failure, check getLastError() or getLastErrorString() for details.

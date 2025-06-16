@@ -28,6 +28,30 @@ void test_set_and_get() {
     TEST_ASSERT_EQUAL_STRING("hello", tc.getString("str_key", "fail").c_str());
 }
 
+void test_getAll_functions() {
+    tc.resetConfig();
+    TEST_ASSERT_TRUE(tc.set("key1", 1));
+    TEST_ASSERT_TRUE(tc.set("key2", 2.5f));
+    TEST_ASSERT_TRUE(tc.set("key3", String("test")));
+
+    String all = tc.getAll("{}");
+    DynamicJsonDocument doc = tc.getAllJson();
+
+    TEST_ASSERT_TRUE(doc.containsKey("key1"));
+    TEST_ASSERT_TRUE(doc.containsKey("key2"));
+    TEST_ASSERT_TRUE(doc.containsKey("key3"));
+
+    TEST_ASSERT_EQUAL(1, doc["key1"].as<int>());
+    TEST_ASSERT_FLOAT_WITHIN(0.01, 2.5f, doc["key2"].as<float>());
+    TEST_ASSERT_EQUAL_STRING("test", doc["key3"].as<String>().c_str());
+
+    TEST_ASSERT_TRUE(all.startsWith("{"));
+    TEST_ASSERT_TRUE(all.endsWith("}"));
+    TEST_ASSERT_TRUE(all.indexOf("\"key1\":1") != -1);
+    TEST_ASSERT_TRUE(all.indexOf("\"key2\":2.5") != -1);
+    TEST_ASSERT_TRUE(all.indexOf("\"key3\":\"test\"") != -1);
+}
+
 void test_fallback() {
     tc.resetConfig();
     TEST_ASSERT_EQUAL(123, tc.getInt("notfound", 123));
@@ -66,6 +90,7 @@ void setup() {
     RUN_TEST(test_init);
     RUN_TEST(test_resetConfig);
     RUN_TEST(test_set_and_get);
+    RUN_TEST(test_getAll_functions);
     RUN_TEST(test_fallback);
     RUN_TEST(test_deleteKey);
     RUN_TEST(test_max_file_size);
