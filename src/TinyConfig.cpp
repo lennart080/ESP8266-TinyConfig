@@ -17,7 +17,7 @@ using namespace ArduinoJson;
  */
 bool TinyConfig::StartTC() {
     if (isInitialized) {
-        lastError = TinyConfigError::AlreadyInitialized;
+        lastError = TinyConfigError::FSAlreadyRunning;
         return false;
     }
     if (!LittleFS.begin()) {
@@ -44,7 +44,7 @@ bool TinyConfig::StartTC() {
  */
 bool TinyConfig::StopTC() {
     if (!isInitialized) {
-        lastError = TinyConfigError::NotInitialized;
+        lastError = TinyConfigError::FSNotRunning;
         return false;
     }
     LittleFS.end();
@@ -86,7 +86,8 @@ TinyConfigError TinyConfig::getLastError() const {
  * @return String representation of the last error code. Useful for debugging or logging.
  */
 String TinyConfig::getLastErrorString() const {
-    return String(static_cast<int>(lastError));
+    auto it = TinyConfigErrorStrings.find(lastError);
+    return (it != TinyConfigErrorStrings.end()) ? it->second : "unknown error";
 }
 
 /**
@@ -120,7 +121,7 @@ bool TinyConfig::setMaxFileSize(size_t maxSize) {
  * 
  * This function opens the configuration file in read mode and attempts to deserialize its contents into the provided DynamicJsonDocument.
  * If the file cannot be opened or read, or if the JSON parsing fails, it sets the lastError accordingly.
- * If the filesystem is not initialized, it sets the lastError to NotInitialized.
+ * If the filesystem is not initialized, it sets the lastError to FSNotRunning.
  * If the file is successfully loaded, it sets lastError to None.
  */
 bool TinyConfig::loadDoc(DynamicJsonDocument& doc) {
@@ -172,14 +173,14 @@ bool TinyConfig::saveDoc(const DynamicJsonDocument& doc) {
  * 
  * This function loads the configuration file into a DynamicJsonDocument, sets the specified key to the provided value,
  * and saves the document back to the file. It checks if the file size exceeds the maximum allowed size.
- * If the filesystem is not initialized, it sets the lastError to NotInitialized.
+ * If the filesystem is not initialized, it sets the lastError to FSNotRunning.
  * If the file size exceeds maxFileSize, it sets the lastError to FileTooLarge.
  * If the file is successfully updated, it sets lastError to None.
  */
 template <typename T>
 bool TinyConfig::setInternal(const String& key, T value) {
     if (!isInitialized) {
-        lastError = TinyConfigError::NotInitialized;
+        lastError = TinyConfigError::FSNotRunning;
         return false;
     }
     DynamicJsonDocument doc(maxFileSize);
@@ -240,7 +241,7 @@ bool TinyConfig::set(const String& key, const String& value) {
  */
 int TinyConfig::getInt(const String& key, int fallback) {
     if (!isInitialized) {
-        lastError = TinyConfigError::NotInitialized;
+        lastError = TinyConfigError::FSNotRunning;
         return fallback;
     }
     DynamicJsonDocument doc(maxFileSize);
@@ -261,7 +262,7 @@ int TinyConfig::getInt(const String& key, int fallback) {
  */
 float TinyConfig::getFloat(const String& key, float fallback) {
     if (!isInitialized) {
-        lastError = TinyConfigError::NotInitialized;
+        lastError = TinyConfigError::FSNotRunning;
         return fallback;
     }
     DynamicJsonDocument doc(maxFileSize);
@@ -282,7 +283,7 @@ float TinyConfig::getFloat(const String& key, float fallback) {
  */
 String TinyConfig::getString(const String& key, const String& fallback) {
     if (!isInitialized) {
-        lastError = TinyConfigError::NotInitialized;
+        lastError = TinyConfigError::FSNotRunning;
         return fallback;
     }
     DynamicJsonDocument doc(maxFileSize);
@@ -298,13 +299,13 @@ String TinyConfig::getString(const String& key, const String& fallback) {
  * @return A DynamicJsonDocument representing the entire configuration.
  * 
  * This function loads the entire configuration into a DynamicJsonDocument.
- * If the filesystem is not initialized, it sets the lastError to NotInitialized.
+ * If the filesystem is not initialized, it sets the lastError to FSNotRunning.
  * If the file cannot be loaded, it sets lastError accordingly.
  */
 DynamicJsonDocument TinyConfig::getAllJson() {
     DynamicJsonDocument doc(maxFileSize);
     if (!isInitialized) {
-        lastError = TinyConfigError::NotInitialized;
+        lastError = TinyConfigError::FSNotRunning;
         return doc;
     }
     if (!loadDoc(doc)) {
@@ -320,12 +321,12 @@ DynamicJsonDocument TinyConfig::getAllJson() {
  * @return A JSON string representing the entire configuration or the fallback value.
  * 
  * This function loads the entire configuration into a DynamicJsonDocument and serializes it to a string.
- * If the filesystem is not initialized, it sets the lastError to NotInitialized.
+ * If the filesystem is not initialized, it sets the lastError to FSNotRunning.
  * If the file cannot be loaded, it returns the fallback value and sets lastError accordingly.
  */
 String TinyConfig::getAll(const String& fallback) {
     if (!isInitialized) {
-        lastError = TinyConfigError::NotInitialized;
+        lastError = TinyConfigError::FSNotRunning;
         return fallback;
     }
     DynamicJsonDocument doc(maxFileSize);
@@ -347,13 +348,13 @@ String TinyConfig::getAll(const String& fallback) {
  * @return true if the key was deleted successfully, false otherwise. On failure, check getLastError() or getLastErrorString() for details.
  * 
  * This funktion removes the specified key from the configuration file.
- * If the filesystem is not initialized, it sets the lastError to NotInitialized.
+ * If the filesystem is not initialized, it sets the lastError to FSNotRunning.
  * If the key does not exist, it sets lastError to None and returns false.
  * If the file is successfully updated, it sets lastError to None.
  */
 bool TinyConfig::deleteKey(const String& key) {
     if (!isInitialized) {
-        lastError = TinyConfigError::NotInitialized;
+        lastError = TinyConfigError::FSNotRunning;
         return false;
     }
     DynamicJsonDocument doc(maxFileSize);
@@ -370,6 +371,47 @@ bool TinyConfig::deleteKey(const String& key) {
     }
     lastError = TinyConfigError::None;
     return true;
+}
+
+/**
+ * @brief Deletes multiple keys from the configuration.
+ * @param keys Array of keys to delete.
+ * @param count Number of keys in the array.
+ * @return true if at least one key was deleted, false otherwise.
+ */
+bool TinyConfig::deleteKeys(const String keys[], size_t& count) {
+    std::vector<String> keyVector(keys, keys + count);
+    return deleteKeys(keyVector);
+}
+
+/**
+ * @brief Deletes multiple keys from the configuration.
+ * @param keys Vector of keys to delete.
+ * @return true if at least one key was deleted, false otherwise.
+ */
+bool TinyConfig::deleteKeys(const std::vector<String>& keys) {
+    if (!isInitialized) {
+        lastError = TinyConfigError::FSNotRunning;
+        return false;
+    }
+    DynamicJsonDocument doc(maxFileSize);
+    if (!loadDoc(doc)) {
+        return false;
+    }
+    bool deleted = false;
+    for (const auto& key : keys) {
+        if (doc.containsKey(key)) {
+            doc.remove(key);
+            deleted = true;
+        }
+    }
+    if (deleted) {
+        if (!saveDoc(doc)) {
+            return false;
+        }
+    }
+    lastError = TinyConfigError::None;
+    return deleted;
 }
 
 // Explicit template instantiations

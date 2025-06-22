@@ -10,8 +10,8 @@
 enum class TinyConfigError {
     None,
     FSInitFailed,
-    NotInitialized,
-    AlreadyInitialized,
+    FSNotRunning,
+    FSAlreadyRunning,
     FileOpenFailed,
     FileWriteFailed,
     FileCreateFailed,    
@@ -19,6 +19,20 @@ enum class TinyConfigError {
     JsonSerializeFailed,
     FileSizeTooSmall,    
     FileSizeTooLarge,
+};
+
+const std::unordered_map<TinyConfigError, String> TinyConfigErrorStrings = {
+    {TinyConfigError::None, "No error"},
+    {TinyConfigError::FSInitFailed, "Filesystem initialization failed"},
+    {TinyConfigError::FSNotRunning, "TinyConfig not running"},
+    {TinyConfigError::FSAlreadyRunning, "TinyConfig already running"},
+    {TinyConfigError::FileOpenFailed, "Failed to open configuration file"},
+    {TinyConfigError::FileWriteFailed, "Failed to write to configuration file"},
+    {TinyConfigError::FileCreateFailed, "Failed to create configuration file"},
+    {TinyConfigError::JsonParseFailed, "JSON parsing failed"},
+    {TinyConfigError::JsonSerializeFailed, "JSON serialization failed"},
+    {TinyConfigError::FileSizeTooSmall, "Configuration file size too small"},
+    {TinyConfigError::FileSizeTooLarge, "Configuration file size too large"}
 };
 
 class TinyConfig {
@@ -35,14 +49,16 @@ public:
     bool set(const String& key, float value);
     bool set(const String& key, const String& value);
 
+    bool deleteKey(const String& key);
+    bool deleteKeys(const String keys[], size_t& count);
+    bool deleteKeys(const std::vector<String>& keys);
+
     int getInt(const String& key, int fallback = 0);
     float getFloat(const String& key, float fallback = 0.0f);
     String getString(const String& key, const String& fallback = "");
 
     String getAll(const String& fallback = "{}");
     DynamicJsonDocument getAllJson();
-
-    bool deleteKey(const String& key);
 
 private:
     TinyConfigError lastError = TinyConfigError::None;

@@ -71,7 +71,7 @@ void test_max_file_size() {
 void test_stop_and_error() {
     TEST_ASSERT_TRUE(tc.StopTC());
     TEST_ASSERT_FALSE(tc.set("after_stop", 1));
-    TEST_ASSERT_EQUAL(TinyConfigError::NotInitialized, tc.getLastError());
+    TEST_ASSERT_EQUAL(TinyConfigError::FSNotRunning, tc.getLastError());
     TEST_ASSERT_EQUAL(42, tc.getInt("after_stop", 42));
 }
 
@@ -84,6 +84,31 @@ void test_deleteKey() {
     TEST_ASSERT_FALSE(tc.deleteKey("non_existent"));
 }
 
+void test_deleteKeys_array() {
+    tc.resetConfig();
+    tc.set("a", 1);
+    tc.set("b", 2);
+    tc.set("c", 3);
+    String keys[] = {"a", "b"};
+    size_t count = 2;
+    TEST_ASSERT_TRUE(tc.deleteKeys(keys, count));
+    TEST_ASSERT_EQUAL(0, tc.getInt("a", 0));
+    TEST_ASSERT_EQUAL(0, tc.getInt("b", 0));
+    TEST_ASSERT_EQUAL(3, tc.getInt("c", 0));
+}
+
+void test_deleteKeys_vector() {
+    tc.resetConfig();
+    tc.set("x", 10);
+    tc.set("y", 20);
+    tc.set("z", 30);
+    std::vector<String> keys = {"x", "z"};
+    TEST_ASSERT_TRUE(tc.deleteKeys(keys));
+    TEST_ASSERT_EQUAL(0, tc.getInt("x", 0));
+    TEST_ASSERT_EQUAL(20, tc.getInt("y", 0));
+    TEST_ASSERT_EQUAL(0, tc.getInt("z", 0));
+}
+
 void setup() {
     delay(2000);
     UNITY_BEGIN();
@@ -93,6 +118,8 @@ void setup() {
     RUN_TEST(test_getAll_functions);
     RUN_TEST(test_fallback);
     RUN_TEST(test_deleteKey);
+    RUN_TEST(test_deleteKeys_array);
+    RUN_TEST(test_deleteKeys_vector);
     RUN_TEST(test_max_file_size);
     RUN_TEST(test_stop_and_error);
     UNITY_END();
