@@ -87,7 +87,7 @@ TinyConfigError TinyConfig::getLastError() const {
  */
 String TinyConfig::getLastErrorString() const {
     auto it = TinyConfigErrorStrings.find(lastError);
-    return (it != TinyConfigErrorStrings.end()) ? it->second : "unknown error";
+    return (it != TinyConfigErrorStrings.end()) ? it->second : "No string description available for this error code";
 }
 
 /**
